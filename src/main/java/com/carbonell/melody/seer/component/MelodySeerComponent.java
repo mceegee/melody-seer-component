@@ -83,6 +83,8 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
 
     public void setApiUrl(String apiUrl) {
         this.apiUrl = apiUrl;
+        
+        apiClient = new ApiClient(apiUrl);
     }
 
     public boolean isIsRunning() {
@@ -112,6 +114,7 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
     // UNNECESSARY for polling
     public List<Media> getAllMedia() throws Exception {
         if (apiUrl != null && !apiUrl.isEmpty()) {
+            lastChecked = getNowAsIsoString();
             return apiClient.getAllMedia(token);
         }
         return null;
@@ -123,14 +126,14 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
         }
     }
 
-    public List<NewMedia> getMediaSinceLastChecked() throws Exception {
-        List<NewMedia> newMedia = new ArrayList<>();
+    public List<Media> getMediaSinceLastChecked() throws Exception {
+        List<Media> newMedia = new ArrayList<>();
         String timeNowISO = getNowAsIsoString();
         if (apiUrl != null && !apiUrl.isEmpty()) {
             // crear una lista de objetos que contienen media y DateTime
             List<Media> discoveredMedia = apiClient.getMediaAddedSince(lastChecked, token);
             for(Media media : discoveredMedia ) {
-                newMedia.add(new NewMedia(media, timeNowISO));
+                newMedia.add(media);
             }           
         }
         lastChecked = timeNowISO;
@@ -139,13 +142,16 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(!this.isShowing()) return;
+        if(!isRunning) return;
         try {
-            List<NewMedia> newMedia = getMediaSinceLastChecked();
+            List<Media> newMedia = getMediaSinceLastChecked();
             
+            if (newMedia == null || newMedia.isEmpty()) {
+                return;
+            }
             
             for(OnNewMediaAddedListener listener: myListeners){
-                listener.newMediaAdded(newMedia);
+                listener.newMediaAdded(new NewMediaEventObject(this, newMedia, lastChecked));
             }
         } catch (Exception ex) {
 

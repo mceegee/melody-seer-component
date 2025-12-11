@@ -5,21 +5,26 @@
 package com.carbonell.melody.seer.component;
 
 import com.carbonell.melody.seer.component.api.Media;
+import java.util.EventObject;
+import java.util.List;
 
 /**
  *
  * @author marta
  */
-public class NewMedia {
-    private final Media media;    
+public class NewMediaEventObject extends EventObject {
+    private final List<Media> media;    
     private final String discoveredTime;
-    
-    public NewMedia(Media media, String discoveredTime) {
+
+    public NewMediaEventObject(Object source, List<Media> media, String discoveredTime) {
+        super(source);
+        
         this.media = media;
         this.discoveredTime = discoveredTime;
     }
+   
 
-    public Media getMedia() {
+    public List<Media> getMedia() {
         return media;
     }
 

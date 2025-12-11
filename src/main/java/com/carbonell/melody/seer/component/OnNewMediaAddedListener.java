@@ -15,5 +15,5 @@ import java.util.List;
  * @author marta
  */
 public interface OnNewMediaAddedListener {
-    public void newMediaAdded(List<NewMedia> media);
+    public void newMediaAdded(NewMediaEventObject object);
 }
