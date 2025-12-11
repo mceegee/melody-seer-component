@@ -88,6 +88,10 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
     public boolean isIsRunning() {
         return isRunning;
     }
+    
+    public void setIsRunning(boolean isRunning) {
+        this.isRunning = isRunning;
+    }
 
     public int getPollingInterval() {
         return pollingInterval;
@@ -100,7 +104,11 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
     public String getLastChecked() {
         return lastChecked;
     }
-
+    
+    public void setLastChecked(String lastChecked) {
+        this.lastChecked = lastChecked;
+    }
+    
     // UNNECESSARY for polling
     public List<Media> getAllMedia() throws Exception {
         if (apiUrl != null && !apiUrl.isEmpty()) {
