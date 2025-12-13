@@ -33,7 +33,7 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
     private boolean isRunning;
     private int pollingInterval = 1000;
     private String token;
-    private String lastChecked;
+    private String lastChecked = "2020-01-01'T'00:01'Z'";
 
     private Timer timer;
     private javax.swing.JLabel lblIcon;
@@ -52,14 +52,16 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
         add(lblIcon, BorderLayout.CENTER); // https://stackoverflow.com/questions/5604188/how-to-make-java-swing-components-fill-available-space
 
         timer = new Timer(pollingInterval, this);
-        timer.start();
-        lastChecked = getNowAsIsoString();
+       
         apiClient = new ApiClient(apiUrl);
     }
 
     public void loginToApi(String user, String pw) throws Exception {
         if (apiUrl != null && !apiUrl.isEmpty()) {
             token = apiClient.login(user, pw);
+            if(token != null) {
+                setIsRunning(true);
+            }
         }
     }
 
@@ -92,6 +94,11 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
     }
     
     public void setIsRunning(boolean isRunning) {
+        if(isRunning) {
+            timer.start();
+        } else {
+            timer.stop();
+        }
         this.isRunning = isRunning;
     }
 
@@ -101,6 +108,9 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
 
     public void setPollingInterval(int pollingInterval) {
         this.pollingInterval = pollingInterval;
+        if(timer != null) {
+            timer.setDelay(pollingInterval);
+        }
     }
 
     public String getLastChecked() {
