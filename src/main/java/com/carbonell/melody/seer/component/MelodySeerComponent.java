@@ -33,7 +33,7 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
     private boolean isRunning;
     private int pollingInterval = 1000;
     private String token;
-    private String lastChecked = "2020-01-01'T'00:01'Z'";
+    private String lastChecked = "2020-01-01T00:01Z";
 
     private Timer timer;
     private javax.swing.JLabel lblIcon;
@@ -56,13 +56,13 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
         apiClient = new ApiClient(apiUrl);
     }
 
-    public void loginToApi(String user, String pw) throws Exception {
+    public String loginToApi(String user, String pw) throws Exception {
         if (apiUrl != null && !apiUrl.isEmpty()) {
             token = apiClient.login(user, pw);
-            if(token != null) {
-                setIsRunning(true);
-            }
+            setToken(token);
         }
+        
+        return token;
     }
 
     public String getNickName(int id) throws Exception {
@@ -120,6 +120,20 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
     public void setLastChecked(String lastChecked) {
         this.lastChecked = lastChecked;
     }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+        if(token != null) {
+            setIsRunning(true);
+            System.out.println("Logged in");
+        }
+    }
+    
+    
     
     // UNNECESSARY for polling
     public List<Media> getAllMedia() throws Exception {
@@ -152,19 +166,23 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        System.out.println("actionPerformed called: " + isRunning);
         if(!isRunning) return;
         try {
             List<Media> newMedia = getMediaSinceLastChecked();
             
+            System.out.println("Checking newMedia " + newMedia.size());
             if (newMedia == null || newMedia.isEmpty()) {
                 return;
             }
             
             for(OnNewMediaAddedListener listener: myListeners){
+                System.out.println("calling listener");
                 listener.newMediaAdded(new NewMediaEventObject(this, newMedia, lastChecked));
+                
             }
         } catch (Exception ex) {
-
+            System.out.print(ex);
         }
     }
     
