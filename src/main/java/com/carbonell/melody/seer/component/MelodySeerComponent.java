@@ -20,6 +20,7 @@ import java.util.TimeZone;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import java.util.ArrayList;
+import javax.swing.SwingWorker;
 
 /**
  *
@@ -39,10 +40,45 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
     private javax.swing.JLabel lblIcon;
 
     private List<OnNewMediaAddedListener> myListeners;
-
+    private SwingWorker<Void, String> mediaCheckerWorker = null;
+    
     public MelodySeerComponent() {
         initComponents();
         myListeners = new ArrayList<>();
+        
+        mediaCheckerWorker = new SwingWorker<Void, String>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                try {
+                    List<Media> newMedia = getMediaSinceLastChecked();
+
+                    // System.out.println("Checking newMedia " + newMedia.size());
+                    if (newMedia == null || newMedia.isEmpty()) {
+                        return null;
+                    }
+
+                    for(OnNewMediaAddedListener listener: myListeners){
+                        // System.out.println("calling listener");
+                        listener.newMediaAdded(new NewMediaEventObject(this, newMedia, lastChecked));
+
+                    }
+                } catch (Exception ex) {
+                    // System.out.print(ex);
+                }
+                return null;
+            }
+
+            @Override
+            protected void process(List<String> chunks) {
+
+            }
+
+            @Override
+            protected void done() {
+
+            }
+
+        };
     }
 
     private void initComponents() {
@@ -129,7 +165,7 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
         this.token = token;
         if(token != null) {
             setIsRunning(true);
-            System.out.println("Logged in");
+            // System.out.println("Logged in");
         }
     }
     
@@ -166,24 +202,10 @@ public class MelodySeerComponent extends JPanel implements Serializable, ActionL
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        System.out.println("actionPerformed called: " + isRunning);
+        // System.out.println("actionPerformed called: " + isRunning);
         if(!isRunning) return;
-        try {
-            List<Media> newMedia = getMediaSinceLastChecked();
-            
-            System.out.println("Checking newMedia " + newMedia.size());
-            if (newMedia == null || newMedia.isEmpty()) {
-                return;
-            }
-            
-            for(OnNewMediaAddedListener listener: myListeners){
-                System.out.println("calling listener");
-                listener.newMediaAdded(new NewMediaEventObject(this, newMedia, lastChecked));
-                
-            }
-        } catch (Exception ex) {
-            System.out.print(ex);
-        }
+
+        mediaCheckerWorker.execute();
     }
     
     public void addNewMediaListener(OnNewMediaAddedListener listener){
