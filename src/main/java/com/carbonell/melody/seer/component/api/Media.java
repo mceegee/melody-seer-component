@@ -5,7 +5,7 @@
 package com.carbonell.melody.seer.component.api;
 
 /**
- *
+ * Class for serializing <code>Media</code> objects
  * @author marta
  */
 import com.fasterxml.jackson.annotation.JsonProperty;

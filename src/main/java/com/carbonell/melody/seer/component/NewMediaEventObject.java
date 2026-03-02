@@ -9,7 +9,7 @@ import java.util.EventObject;
 import java.util.List;
 
 /**
- *
+ * Custom <code>EventObject</code>
  * @author marta
  */
 public class NewMediaEventObject extends EventObject {

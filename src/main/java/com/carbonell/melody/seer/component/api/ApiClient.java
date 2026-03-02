@@ -27,6 +27,11 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+/**
+ * This class interacts with the API
+ *
+ * @author marta
+ */
 public class ApiClient {
 
     private final HttpClient client;
@@ -39,6 +44,14 @@ public class ApiClient {
         this.client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     }
 
+    /**
+     * Method to create a HttpRequest.Builder for a given API path It creates
+     * the path, sets a 30 seconds timer and uses a given token
+     *
+     * @param path
+     * @param jwt token
+     * @return b a certain HttpRequest.Builder
+     */
     private HttpRequest.Builder requestBuilder(String path, String jwt) {
         HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(baseUrl + path))
                 .timeout(Duration.ofSeconds(30));
@@ -48,6 +61,15 @@ public class ApiClient {
         return b;
     }
 
+    /**
+     * Method to authenticate a user. Sends a POST request with the credentials.
+     * Then, if authentication is successful, a token is obtained and saved.
+     *
+     * @param email
+     * @param password
+     * @return the token
+     * @throws Exception if the request fails
+     */
     public String login(String email, String password) throws Exception {
         Map<String, Object> body = Map.of("email", email, "password", password);
         String json = mapper.writeValueAsString(body);
@@ -76,6 +98,13 @@ public class ApiClient {
         }
     }
 
+    /**
+     * Method to get the information of a certain user
+     *
+     * @param jwt token
+     * @return a <code>Usuari</code> object
+     * @throws Exception
+     */
     public Usuari getMe(String jwt) throws Exception {
         HttpRequest req = requestBuilder("/api/users/me", jwt).GET().build();
         HttpResponse<String> r = client.send(req, HttpResponse.BodyHandlers.ofString());
@@ -85,6 +114,14 @@ public class ApiClient {
         throw new IOException("getMe failed: " + r.statusCode() + " " + r.body());
     }
 
+    /**
+     * Method to retreive the nickname of a certain user from a given id
+     *
+     * @param id of the user
+     * @param jwt token
+     * @return a String of the username
+     * @throws Exception if the request is not valid
+     */
     public String getNickName(int id, String jwt) throws Exception {
         HttpRequest req = requestBuilder("/api/users/" + id + "/nickname", jwt).GET().build();
         HttpResponse<String> r = client.send(req, HttpResponse.BodyHandlers.ofString());
@@ -112,6 +149,13 @@ public class ApiClient {
         throw new IOException("getNickName failed: " + r.statusCode());
     }
 
+    /**
+     * Method to get all the media available on the API
+     *
+     * @param jwt token
+     * @return a list of Media objects
+     * @throws Exception if the request fails
+     */
     public List<Media> getAllMedia(String jwt) throws Exception {
         HttpRequest req = requestBuilder("/api/files/all", jwt).GET().build();
         HttpResponse<String> r = client.send(req, HttpResponse.BodyHandlers.ofString());
@@ -122,6 +166,14 @@ public class ApiClient {
         throw new IOException("getAllMedia failed: " + r.statusCode());
     }
 
+    /**
+     * Method to get all media uploaded by a given user (by ID)
+     *
+     * @param userId
+     * @param jwt token
+     * @return a list of Media objects
+     * @throws Exception if the request fails
+     */
     public List<Media> getMediaByUser(int userId, String jwt) throws Exception {
         HttpRequest req = requestBuilder("/api/files/user/" + userId, jwt).GET().build();
         HttpResponse<String> r = client.send(req, HttpResponse.BodyHandlers.ofString());
@@ -132,6 +184,13 @@ public class ApiClient {
         throw new IOException("getMediaByUser failed: " + r.statusCode());
     }
 
+    /**
+     * Method to get media uploaded by the user making the request
+     *
+     * @param jwt token
+     * @return a list of Media objects
+     * @throws Exception if the request fails
+     */
     public List<Media> getMyMedia(String jwt) throws Exception {
         HttpRequest req = requestBuilder("/api/files/me", jwt).GET().build();
         HttpResponse<String> r = client.send(req, HttpResponse.BodyHandlers.ofString());
@@ -142,6 +201,13 @@ public class ApiClient {
         throw new IOException("getMyMedia failed: " + r.statusCode());
     }
 
+    /**
+     * Method to get blobs from a certain container
+     *
+     * @param jwt token
+     * @return a Json with the requested info
+     * @throws Exception if the request fails
+     */
     public String listBlobs(String jwt) throws Exception {
         String path = "/api/files?container=" + URLEncoder.encode(defaultBlobContainer, "UTF-8");
         HttpRequest req = requestBuilder(path, jwt).GET().build();
@@ -152,6 +218,15 @@ public class ApiClient {
         throw new IOException("listBlobs failed: " + r.statusCode());
     }
 
+    /**
+     * Method to download a certain file by its ID, and downloaded to a certain
+     * file.
+     *
+     * @param id of the media
+     * @param destFile of the file
+     * @param jwt token
+     * @throws Exception if the request fails
+     */
     // Download blob data and write to destFile
     public void download(int id, File destFile, String jwt) throws Exception {
         String path = "/api/files/" + id + "?container=" + URLEncoder.encode(defaultBlobContainer, "UTF-8");
@@ -170,6 +245,16 @@ public class ApiClient {
         throw new IOException("downloadById failed: " + r.statusCode());
     }
 
+    /**
+     * Method to upload files as a multipart/form-data Uploads the file, the url
+     * from where it was originally downloaded and a container
+     *
+     * @param file to upload
+     * @param downloadedFromUrl original url
+     * @param jwt token
+     * @return the server response
+     * @throws Exception if the upload fails
+     */
     // Upload file as multipart/form-data (field names: file, downloadedFromUrl, container)
     public String uploadFileMultipart(File file, String downloadedFromUrl, String jwt) throws Exception {
         String boundary = "----JavaClientBoundary" + System.currentTimeMillis();
@@ -193,6 +278,16 @@ public class ApiClient {
         throw new IOException("uploadFileMultipart failed: " + r.statusCode() + " " + r.body());
     }
 
+    /**
+     * Helper method to build multipart body
+     *
+     * @param file
+     * @param fileFieldName
+     * @param fields for the form
+     * @param boundary
+     * @return a HttpRequest.BodyPublisher
+     * @throws IOException
+     */
     // Helper to build multipart body
     private static HttpRequest.BodyPublisher buildMultipart(File file, String fileFieldName, Map<String, String> fields, String boundary) throws IOException {
         var byteArrays = new ArrayList<byte[]>();
@@ -219,6 +314,13 @@ public class ApiClient {
         return HttpRequest.BodyPublishers.ofByteArrays(byteArrays);
     }
 
+    /**
+     * Method to get media added since a given point of time (using OffsetDateTime)
+     * @param from date-time
+     * @param jwt token
+     * @return list of Media objects
+     * @throws Exception if the request fails
+     */
     public List<Media> getMediaAddedSince(OffsetDateTime from, String jwt) throws Exception {
         if (from == null) {
             throw new IllegalArgumentException("from is required");
@@ -238,6 +340,13 @@ public class ApiClient {
         throw new IOException("getMediaAddedSince failed: " + r.statusCode() + " -> " + r.body());
     }
 
+    /**
+     * Overload of getMediaAddedSince(). Accepts ISO-8601 string instead of OffsetDateTime
+     * @param isoFrom date
+     * @param jwt token 
+     * @return list of Media Objects
+     * @throws Exception if the request fails
+     */
 // Convenience overload accepting ISO-8601 string (e.g. "2025-11-18T12:00:00Z")
     public List<Media> getMediaAddedSince(String isoFrom, String jwt) throws Exception {
         if (isoFrom == null || isoFrom.isBlank()) {

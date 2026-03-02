@@ -11,7 +11,7 @@ package com.carbonell.melody.seer.component;
 import java.util.List;
 
 /**
- *
+ * Custom <code>Listener</code> for <code>NewMediaEventObject</code>
  * @author marta
  */
 public interface OnNewMediaAddedListener {

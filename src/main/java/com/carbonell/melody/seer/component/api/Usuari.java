@@ -5,7 +5,7 @@
 package com.carbonell.melody.seer.component.api;
 
 /**
- *
+ * Class for serializing <code>Usuari</code> objects
  * @author marta
  */
 // Created by Github Copilot
